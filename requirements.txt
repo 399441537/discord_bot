@@ -1,6 +1,3 @@
-discord
-os
-io
-pickle
-google
-PIL
+discord.py
+google-genai
+Pillow
