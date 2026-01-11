@@ -1,0 +1,7 @@
+discord
+sqlite3
+os
+io
+pickle
+google
+PIL
