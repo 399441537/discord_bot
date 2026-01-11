@@ -1,5 +1,4 @@
 discord
-sqlite3
 os
 io
 pickle

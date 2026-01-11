@@ -1,4 +1,3 @@
-from keep_alive import keep_alive
 import discord, sqlite3,os, io, pickle
 from google import genai
 from google.genai import types
@@ -99,7 +98,6 @@ async def on_message(message):
   if au.id == 375251797679538177:
     await message.add_reaction('🐑')
 
-keep_alive()
 """con.execute('''CREATE TABLE DB
  (ID INT PRIMARY KEY,
   HISTORY BLOB);''')"""
