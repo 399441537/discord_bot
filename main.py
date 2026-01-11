@@ -35,6 +35,12 @@ config = types.GenerateContentConfig(
   top_p=0.95,
   system_instruction=system_instructions)
 
+if not os.path.exists('db.db'):
+  con.execute('''CREATE TABLE DB
+              (ID INT PRIMARY KEY,
+              HISTORY BLOB);''')
+  con.commit()
+
 def save(id, history):
   con.execute("INSERT OR REPLACE INTO DB VALUES (?, ?)", (id, pickle.dumps(history)))
   con.commit()
@@ -97,9 +103,5 @@ async def on_message(message):
 
   if au.id == 375251797679538177:
     await message.add_reaction('🐑')
-
-"""con.execute('''CREATE TABLE DB
- (ID INT PRIMARY KEY,
-  HISTORY BLOB);''')"""
-#con.commit()
+    
 client.run(os.environ['TOKEN'])
