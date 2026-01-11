@@ -5,6 +5,7 @@ from google.genai import types
 from PIL import Image
 from discord.ext import commands
 from dotenv import load_dotenv
+from keep_alive import keep_alive
 
 load_dotenv()
 
@@ -289,4 +290,5 @@ async def on_command_error(ctx, error):
     print(f"Error: {error}") 
     raise error
 
+keep_alive()
 bot.run(os.environ['TOKEN'])
