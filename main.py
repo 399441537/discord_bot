@@ -35,7 +35,7 @@ config = types.GenerateContentConfig(
   top_p=0.95,
   system_instruction=system_instructions)
 
-if not os.path.exists('db.db'):
+if con.execute("SELECT NAME FROM SQLITE_MASTER WHERE TYPE = 'TABLE' AND NAME = 'DB'").fetchone() is None:
   con.execute('''CREATE TABLE DB
               (ID INT PRIMARY KEY,
               HISTORY BLOB);''')
