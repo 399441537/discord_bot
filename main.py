@@ -2,6 +2,9 @@ import discord, sqlite3,os, io, pickle
 from google import genai
 from google.genai import types
 from PIL import Image
+from dotenv import load_dotenv
+
+load_dotenv()
 
 intents = discord.Intents.default()
 intents.message_content = True 
@@ -35,7 +38,7 @@ config = types.GenerateContentConfig(
   top_p=0.95,
   system_instruction=system_instructions)
 
-if con.execute("SELECT NAME FROM SQLITE_MASTER WHERE TYPE = 'TABLE' AND NAME = 'DB'").fetchone() is None:
+if con.execute("SELECT 1 FROM SQLITE_MASTER WHERE tbl_name = 'DB'").fetchone() is None:
   con.execute('''CREATE TABLE DB
               (ID INT PRIMARY KEY,
               HISTORY BLOB);''')
