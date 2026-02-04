@@ -2,4 +2,3 @@ discord.py
 google-genai
 Pillow
 dotenv
-flask
