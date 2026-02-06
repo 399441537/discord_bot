@@ -149,7 +149,7 @@ async def info(ctx, mob: str = None):
 
 @bot.command()
 async def help(ctx):
-  await ctx.send('Help: $help\nRegister: $reg name\nStatistics: $stat\nList player: $list\nMob info: $info target\nAttack: $atk target\nShop: $shop item\n召唤xgt: $call_xgt')
+  await ctx.send('Help: #help\nRegister: #reg name\nStatistics: #stat\nList player: #list\nMob info: #info target\nAttack: #atk target\nShop: #shop item\n召唤xgt: #call_xgt')
 
 @bot.command()
 @commands.check(exist)
@@ -241,10 +241,10 @@ async def atk(ctx, mob: str):
 @bot.event
 async def on_command_error(ctx, error):
   if isinstance(error, commands.CheckFailure):
-        await ctx.send('使用 "$reg 名字" 注册。')
+        await ctx.send('使用 "#reg 名字" 注册。')
 
   elif isinstance(error, commands.MissingRequiredArgument):
-      await ctx.send('Unknown command. Type "$help" for help')
+      await ctx.send('Unknown command. Type "#help" for help')
 
   elif isinstance(error, commands.CommandNotFound):
     msg = ctx.message.content[1:]
@@ -276,9 +276,8 @@ async def on_command_error(ctx, error):
     if ctx.message.attachments:
       for attachment in ctx.message.attachments:
         if attachment.content_type.startswith('image'):
-          image = Image.open(io.BytesIO(await attachment.read()))
-          prompt.append(types.Part.from_image(image))
-            
+          image = await attachment.read()
+          prompt.append(types.Part.from_bytes(data=image, mime_type=attachment.content_type))  
     if not prompt:
       return
       
