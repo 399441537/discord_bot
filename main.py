@@ -77,6 +77,16 @@ def exist(ctx):
     return True
   return False
   
+async def read_message(message, prompt):
+  if message.content:
+    prompt.append(types.Part.from_text(text=message.content))
+
+  if message.attachments:
+    for attachment in message.attachments:
+      if attachment.content_type.startswith('image'):
+        image = await attachment.read()
+        prompt.append(types.Part.from_bytes(data=image, mime_type=attachment.content_type))  
+
 @bot.event
 async def on_message(message):
   if message.author == bot.user:
@@ -269,15 +279,13 @@ async def on_command_error(ctx, error):
         system_instruction=system_instructions)
 
     prompt = []
-      
-    if msg:
-      prompt.append(types.Part.from_text(text=msg))
     
-    if ctx.message.attachments:
-      for attachment in ctx.message.attachments:
-        if attachment.content_type.startswith('image'):
-          image = await attachment.read()
-          prompt.append(types.Part.from_bytes(data=image, mime_type=attachment.content_type))  
+    if ctx.message.reference and ctx.message.reference.resolved:
+      ref = ctx.message.reference.resolved
+      await read_message(ref, prompt)
+      
+    await read_message(ctx.message, prompt)
+
     if not prompt:
       return
       
