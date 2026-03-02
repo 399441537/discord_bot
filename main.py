@@ -43,6 +43,7 @@ system_instructions = """
 if con.execute("SELECT 1 FROM SQLITE_MASTER WHERE TBL_NAME = 'API'").fetchone() is None:
   con.execute('''CREATE TABLE API
               (ID     INT   PRIMARY KEY,
+              PRO     BOOLEAN,
               HISTORY BLOB);''')
   con.commit()
 
@@ -61,19 +62,19 @@ if con.execute("SELECT 1 FROM SQLITE_MASTER WHERE TBL_NAME = 'GAME'").fetchone()
               DEF     INT);''')
   con.commit()
 
-def save(id, history):
-  con.execute("INSERT OR REPLACE INTO API VALUES (?, ?)", (id, pickle.dumps(history)))
+def save(id, pro, history):
+  con.execute("INSERT OR REPLACE INTO API VALUES (?, ?, ?)", (id, pro, pickle.dumps(history)))
   con.commit()
 
-def load(id):
-  history = con.execute(f"SELECT HISTORY FROM API WHERE ID = ?", (id,)).fetchone()
+def load(id, pro):
+  history = con.execute(f"SELECT HISTORY FROM API WHERE ID = ? AND PRO = ?", (id, pro)).fetchone()
   if history:
     return pickle.loads(history[0])
   else:  
     return []
   
 def exist(ctx):
-  if con.execute(f"SELECT 1 FROM GAME WHERE ID = ?", (ctx.author.id,)).fetchone():
+  if con.execute(f"SELECT 1 FROM GAME WHERE ID = ?", (ctx.author.id)).fetchone():
     return True
   return False
   
@@ -251,24 +252,26 @@ async def atk(ctx, mob: str):
 @bot.event
 async def on_command_error(ctx, error):
   if isinstance(error, commands.CheckFailure):
-        await ctx.send('使用 "#reg 名字" 注册。')
+    await ctx.send('使用 "#reg 名字" 注册。')
 
   elif isinstance(error, commands.MissingRequiredArgument):
-      await ctx.send('Unknown command. Type "#help" for help')
+    await ctx.send('Unknown command. Type "#help" for help')
 
   elif isinstance(error, commands.CommandNotFound):
-    msg = ctx.message.content[1:]
+    ctx.message.content = ctx.message.content[1:]
 
-    if msg.startswith('pro '):
-      msg = msg[4:]
+    if ctx.message.content.startswith('pro '):
+      ispro = True
+      ctx.message.content = ctx.message.content[4:]
       gemini = genai.Client(api_key=os.environ['API_KEY_PRO'])
       model = "gemini-3-pro-preview"
       config = types.GenerateContentConfig(
         tools=[types.Tool(google_search=types.GoogleSearch())],
         top_p=0.95,
-        system_instruction=system_instructions)
+        system_instruction="尽可能调用google search支持你的答案，并注意当前的日期。")
     
     else:
+      ispro = False
       gemini = genai.Client(api_key=os.environ['API_KEY'])
       model = "gemini-flash-lite-latest"
       config = types.GenerateContentConfig(
@@ -292,7 +295,7 @@ async def on_command_error(ctx, error):
     prompt = types.Content(role="user", parts=prompt)
     
     async with ctx.typing():
-      history = load(ctx.author.id)
+      history = load(ctx.author.id, ispro)
       history.append(prompt)
       response = (await gemini.aio.models.generate_content(model=model, config=config, contents=history)).text
 
@@ -304,7 +307,7 @@ async def on_command_error(ctx, error):
         await ctx.send(chunk)
     
       history.append(types.Content(role="model", parts=[types.Part.from_text(text=response)]))
-      save(ctx.author.id, history)
+      save(ctx.author.id, ispro, history)
 
   else:
     print(f"Error: {error}") 
